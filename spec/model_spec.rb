@@ -242,4 +242,9 @@ describe Rasti::Model do
     point.z.must_equal 3
   end
 
+  it 'Invalid attribute redefinition' do
+    error = proc { Point[x: T::String] }.must_raise ArgumentError
+    error.message.must_equal 'Attribute x already exists'
+  end
+
 end
