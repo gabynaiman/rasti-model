@@ -7,10 +7,7 @@ module Rasti
 
       def initialize(attribute)
         @attribute = attribute
-      end
-
-      def message
-        "Not assigned attribute #{attribute}"
+        super "Not assigned attribute #{attribute}"
       end
 
     end
@@ -21,10 +18,7 @@ module Rasti
 
       def initialize(attributes)
         @attributes = attributes
-      end
-
-      def message
-        "Invalid attributes: #{attributes.join(', ')}"
+        super "Invalid attributes: #{attributes.join(', ')}"
       end
 
     end
