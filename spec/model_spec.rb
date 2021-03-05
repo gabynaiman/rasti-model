@@ -23,8 +23,8 @@ describe Rasti::Model do
     end
 
     it 'Invalid attributes' do
-      error = proc { Point.new z: 3 }.must_raise ArgumentError
-      error.message.must_equal 'Point invalid attributes: z'
+      error = proc { Point.new z: 3 }.must_raise Rasti::Model::InvalidAttributesError
+      error.message.must_equal 'Invalid attributes: z'
     end
 
     it 'Indifferent attribute keys' do

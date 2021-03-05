@@ -57,7 +57,7 @@ module Rasti
 
     def initialize(attributes={})
       invalid_attributes = attributes.keys.map(&:to_sym) - self.class.attribute_names
-      raise ArgumentError, "#{self.class.model_name} invalid attributes: #{invalid_attributes.join(', ')}" unless invalid_attributes.empty?
+      raise InvalidAttributesError, invalid_attributes unless invalid_attributes.empty?
 
       @__attributes__ = attributes
       @__cache__ = {}
