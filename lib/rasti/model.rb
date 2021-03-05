@@ -59,6 +59,10 @@ module Rasti
       @__cache__ = {}
     end
 
+    def assigned?(attr_name)
+      !attribute_key_for(attr_name.to_sym).nil?
+    end
+
     def merge(new_attributes)
       self.class.new __attributes__.merge(new_attributes)
     end
@@ -104,7 +108,7 @@ module Rasti
 
     def read_all_assigned_attributes!
       self.class.attributes.each do |attribute|
-        read_attribute attribute if assigned_attribute?(attribute.name) || attribute.default?
+        read_attribute attribute if assigned?(attribute.name) || attribute.default?
       end
     end
 
@@ -130,10 +134,6 @@ module Rasti
       else
         type.cast value
       end
-    end
-
-    def assigned_attribute?(attr_name)
-      !attribute_key_for(attr_name.to_sym).nil?
     end
 
     def attribute_key_for(attr_name)
