@@ -24,12 +24,16 @@ module Rasti
         @attributes ||= []
       end
 
+      def attribute_names
+        @attibute_names ||= attributes.map(&:name)
+      end
+
       def model_name
         name || self.superclass.name
       end
 
       def to_s
-        "#{model_name}[#{attributes.map(&:name).join(', ')}]"
+        "#{model_name}[#{attribute_names.join(', ')}]"
       end
       alias_method :inspect, :to_s
 
@@ -52,7 +56,7 @@ module Rasti
     end
 
     def initialize(attributes={})
-      invalid_attributes = attributes.keys.map(&:to_sym) - self.class.attributes.map(&:name)
+      invalid_attributes = attributes.keys.map(&:to_sym) - self.class.attribute_names
       raise ArgumentError, "#{self.class.model_name} invalid attributes: #{invalid_attributes.join(', ')}" unless invalid_attributes.empty?
 
       @__attributes__ = attributes
