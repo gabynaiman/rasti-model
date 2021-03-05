@@ -55,12 +55,12 @@ module Rasti
       invalid_attributes = attributes.keys.map(&:to_sym) - self.class.attributes.map(&:name)
       raise ArgumentError, "#{self.class.model_name} invalid attributes: #{invalid_attributes.join(', ')}" unless invalid_attributes.empty?
 
-      @attributes = attributes
-      @cache = {}
+      @__attributes__ = attributes
+      @__cache__ = {}
     end
 
     def merge(new_attributes)
-      self.class.new @attributes.merge(new_attributes)
+      self.class.new __attributes__.merge(new_attributes)
     end
 
     def eql?(other)
@@ -90,11 +90,17 @@ module Rasti
     def to_s
       read_all_assigned_attributes!
 
-      "#{self.class.model_name}[#{@cache.map { |n,v| "#{n}: #{v.inspect}" }.join(', ')}]"
+      "#{self.class.model_name}[#{__cache__.map { |n,v| "#{n}: #{v.inspect}" }.join(', ')}]"
     end
     alias_method :inspect, :to_s
 
     private
+
+    attr_reader :__attributes__
+
+    def __cache__
+      @__cache__ ||= {}
+    end
 
     def read_all_assigned_attributes!
       self.class.attributes.each do |attribute|
@@ -103,37 +109,37 @@ module Rasti
     end
 
     def read_attribute(attribute)
-      @cache[attribute.name] ||= begin
-        attribute_key = key_for attribute.name
+      __cache__[attribute.name] ||= begin
+        attribute_key = attribute_key_for attribute.name
         if attribute_key
-          cast attribute, @attributes[attribute_key]
+          cast_attribute attribute.type, __attributes__[attribute_key]
         elsif attribute.default?
           value = attribute.default_value.respond_to?(:call) ? attribute.default_value.call(self) : attribute.default_value
-          cast attribute, value
+          cast_attribute attribute.type, value
         else
           raise NotAssignedAttributeError, attribute.name
         end
       end
     end
 
-    def cast(attribute, value)
-      if attribute.type.nil?
+    def cast_attribute(type, value)
+      if type.nil?
         value
-      elsif attribute.type.is_a?(Symbol)
-        send attribute.type, value
+      elsif type.is_a?(Symbol)
+        send type, value
       else
-        attribute.type.cast value
+        type.cast value
       end
     end
 
     def assigned_attribute?(attr_name)
-      !key_for(attr_name.to_sym).nil?
+      !attribute_key_for(attr_name.to_sym).nil?
     end
 
-    def key_for(attr_name)
-      if @attributes.key?(attr_name)
+    def attribute_key_for(attr_name)
+      if __attributes__.key?(attr_name)
         attr_name
-      elsif @attributes.key?(attr_name.to_s)
+      elsif __attributes__.key?(attr_name.to_s)
         attr_name.to_s
       else
         nil
@@ -144,7 +150,7 @@ module Rasti
       @serialized_attributes ||= begin
         read_all_assigned_attributes!
 
-        @cache.each_with_object({}) do |(attr_name, value), hash|
+        __cache__.each_with_object({}) do |(attr_name, value), hash|
           hash[attr_name] = serialize_value value
         end
       end
