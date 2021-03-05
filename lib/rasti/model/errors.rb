@@ -12,13 +12,13 @@ module Rasti
 
     end
 
-    class InvalidAttributesError < StandardError
+    class UnexpectedAttributesError < StandardError
 
       attr_reader :attributes
 
       def initialize(attributes)
         @attributes = attributes
-        super "Invalid attributes: #{attributes.join(', ')}"
+        super "Unexpected attributes: #{attributes.join(', ')}"
       end
 
     end

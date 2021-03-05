@@ -57,9 +57,7 @@ module Rasti
 
     def initialize(attributes={})
       validate_defined_attributes! attributes.keys.map(&:to_sym)
-
       @__attributes__ = attributes
-      @__cache__ = {}
     end
 
     def assigned?(attr_name)
@@ -103,11 +101,17 @@ module Rasti
 
     private
 
-    attr_reader :__attributes__, :__cache__
+    def __attributes__
+      @__attributes__ ||= {}
+    end
+
+    def __cache__
+      @__cache__ ||= {}
+    end
 
     def validate_defined_attributes!(attribute_names)
       invalid_attributes = attribute_names - self.class.attribute_names
-      raise InvalidAttributesError, invalid_attributes unless invalid_attributes.empty?
+      raise UnexpectedAttributesError, invalid_attributes unless invalid_attributes.empty?
     end
 
     def read_all_assigned_attributes!

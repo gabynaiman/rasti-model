@@ -22,9 +22,9 @@ describe Rasti::Model do
       error.message.must_equal 'Not assigned attribute y'
     end
 
-    it 'Invalid attributes' do
-      error = proc { Point.new z: 3 }.must_raise Rasti::Model::InvalidAttributesError
-      error.message.must_equal 'Invalid attributes: z'
+    it 'Unexpected attributes' do
+      error = proc { Point.new z: 3 }.must_raise Rasti::Model::UnexpectedAttributesError
+      error.message.must_equal 'Unexpected attributes: z'
     end
 
     it 'Indifferent attribute keys' do
