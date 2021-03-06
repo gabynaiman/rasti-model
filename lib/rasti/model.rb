@@ -135,7 +135,7 @@ module Rasti
     end
 
     def cast_attribute(type, value)
-      if type.nil?
+      if type.nil? || value.nil?
         value
       elsif type.is_a?(Symbol)
         send type, value
