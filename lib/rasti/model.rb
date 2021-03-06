@@ -68,16 +68,27 @@ module Rasti
       self.class.new __attributes__.merge(new_attributes)
     end
 
-    def eql?(other)
-      instance_of?(other.class) && to_h.eql?(other.to_h)
-    end
+    def cast_attributes!
+      errors = {}
 
-    def ==(other)
-      other.kind_of?(self.class) && to_h == other.to_h
-    end
+      self.class.attributes.each do |attribute|
+        begin
+          if assigned?(attribute.name) || attribute.default?
+            value = read_attribute attribute
+            value.cast_attributes! if value.is_a? Model
+          end
 
-    def hash
-      [self.class, to_h].hash
+        rescue Rasti::Types::CompoundError => ex
+          ex.errors.each do |key, messages|
+            errors["#{attribute.name}.#{key}"] = messages
+          end
+
+        rescue Rasti::Types::CastError => ex
+          errors[attribute.name] = [ex.message]
+        end
+      end
+
+      raise Rasti::Types::CompoundError.new(errors) unless errors.empty?
     end
 
     def to_h(options={})
@@ -93,11 +104,23 @@ module Rasti
     end
 
     def to_s
-      read_all_assigned_attributes!
+      cast_attributes!
 
       "#{self.class.model_name}[#{__cache__.map { |n,v| "#{n}: #{v.inspect}" }.join(', ')}]"
     end
     alias_method :inspect, :to_s
+
+    def eql?(other)
+      instance_of?(other.class) && to_h.eql?(other.to_h)
+    end
+
+    def ==(other)
+      other.kind_of?(self.class) && to_h == other.to_h
+    end
+
+    def hash
+      [self.class, to_h].hash
+    end
 
     private
 
@@ -112,20 +135,6 @@ module Rasti
     def validate_defined_attributes!(attribute_names)
       invalid_attributes = attribute_names - self.class.attribute_names
       raise UnexpectedAttributesError, invalid_attributes unless invalid_attributes.empty?
-    end
-
-    def read_all_assigned_attributes!
-      errors = {}
-
-      self.class.attributes.each do |attribute|
-        begin
-          read_attribute attribute if assigned?(attribute.name) || attribute.default?
-        rescue Rasti::Types::CastError => ex
-          errors[attribute.name] = ex.message
-        end
-      end
-
-      raise Rasti::Types::MultiCastError.new(self.class, __attributes__, errors) unless errors.empty?
     end
 
     def read_attribute(attribute)
@@ -164,7 +173,7 @@ module Rasti
 
     def serialized_attributes
       @serialized_attributes ||= begin
-        read_all_assigned_attributes!
+        cast_attributes!
 
         __cache__.each_with_object({}) do |(attr_name, value), hash|
           hash[attr_name] = serialize_value value

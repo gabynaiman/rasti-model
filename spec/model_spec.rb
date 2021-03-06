@@ -167,6 +167,7 @@ describe Rasti::Model do
 
     let :contact_class do
       Rasti::Model[
+        id:        T::Integer,
         name:      T::String,
         birthday:  T::Model[birthday_class],
         phones:    T::Hash[T::Symbol, T::Integer],
@@ -177,6 +178,7 @@ describe Rasti::Model do
 
     let :attributes do
       {
+        id: 12345,
         name: 'John',
         birthday: {
           day: 19,
@@ -210,10 +212,25 @@ describe Rasti::Model do
     it 'Except' do
       contact = contact_class.new attributes
 
-      contact.to_h(except: [:age, :addresses]).must_equal name: attributes[:name],
+      contact.to_h(except: [:age, :addresses]).must_equal id: attributes[:id],
+                                                          name: attributes[:name],
                                                           birthday: attributes[:birthday],
                                                           phones: attributes[:phones],
                                                           labels: attributes[:labels]
+    end
+
+    it 'Ignore not assigned attributes' do
+      contact = contact_class.new birthday: {year: 1993, month: 06, day: 19}
+
+      contact.to_h.must_equal birthday: attributes[:birthday]
+    end
+
+    it 'Invalid cast' do
+      contact = contact_class.new id: 'abcd', birthday: {year: 1993, month: 6, day: 'XIX'}
+
+      error = proc { contact.to_h }.must_raise Rasti::Types::CompoundError
+      error.errors.must_equal id: ["Invalid cast: 'abcd' -> Rasti::Types::Integer"],
+                              'birthday.day' => ["Invalid cast: 'XIX' -> Rasti::Types::Integer"]
     end
 
   end
