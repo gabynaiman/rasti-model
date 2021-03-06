@@ -115,9 +115,17 @@ module Rasti
     end
 
     def read_all_assigned_attributes!
+      errors = {}
+
       self.class.attributes.each do |attribute|
-        read_attribute attribute if assigned?(attribute.name) || attribute.default?
+        begin
+          read_attribute attribute if assigned?(attribute.name) || attribute.default?
+        rescue Rasti::Types::CastError => ex
+          errors[attribute.name] = ex.message
+        end
       end
+
+      raise Rasti::Types::MultiCastError.new(self.class, __attributes__, errors) unless errors.empty?
     end
 
     def read_attribute(attribute)
