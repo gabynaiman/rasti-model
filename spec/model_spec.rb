@@ -13,9 +13,6 @@ describe Rasti::Model do
     it 'Some attributes' do
       point = Point.new x: 1
 
-      point.assigned?(:x).must_equal true
-      point.assigned?(:y).must_equal false
-
       point.x.must_equal 1
 
       error = proc { point.y }.must_raise Rasti::Model::NotAssignedAttributeError

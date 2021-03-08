@@ -60,10 +60,6 @@ module Rasti
       @__attributes__ = attributes
     end
 
-    def assigned?(attr_name)
-      !attribute_key_for(attr_name.to_sym).nil?
-    end
-
     def merge(new_attributes)
       self.class.new __attributes__.merge(new_attributes)
     end
@@ -73,7 +69,7 @@ module Rasti
 
       self.class.attributes.each do |attribute|
         begin
-          if assigned?(attribute.name) || attribute.default?
+          if assigned_attribute?(attribute.name) || attribute.default?
             value = read_attribute attribute
             value.cast_attributes! if value.is_a? Model
           end
@@ -159,6 +155,10 @@ module Rasti
       else
         type.cast value
       end
+    end
+
+    def assigned_attribute?(attr_name)
+      !attribute_key_for(attr_name.to_sym).nil?
     end
 
     def attribute_key_for(attr_name)
