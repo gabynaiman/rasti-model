@@ -16,7 +16,7 @@ describe Rasti::Model do
       point.x.must_equal 1
 
       error = proc { point.y }.must_raise Rasti::Model::NotAssignedAttributeError
-      error.message.must_equal 'Not assigned attribute y'
+      error.message.must_equal 'Not assigned attribute: y'
     end
 
     it 'Unexpected attributes' do

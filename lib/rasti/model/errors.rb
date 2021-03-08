@@ -7,7 +7,7 @@ module Rasti
 
       def initialize(attribute)
         @attribute = attribute
-        super "Not assigned attribute #{attribute}"
+        super "Not assigned attribute: #{attribute}"
       end
 
     end
