@@ -230,6 +230,14 @@ describe Rasti::Model do
                               'birthday.day' => ["Invalid cast: 'XIX' -> Rasti::Types::Integer"]
     end
 
+    it 'With defaults' do
+      model = Class.new(Rasti::Model) do
+        attribute :text, T::String, default: 'xyz'
+      end
+
+      model.new.to_h.must_equal text: 'xyz'
+    end
+
   end
 
   it 'Merge' do

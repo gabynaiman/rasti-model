@@ -69,7 +69,7 @@ module Rasti
 
       self.class.attributes.each do |attribute|
         begin
-          if assigned_attribute?(attribute.name) || attribute.default?
+          if assigned_attribute?(attribute.name)
             value = read_attribute attribute
             value.cast_attributes! if value.is_a? Model
           end
@@ -158,7 +158,7 @@ module Rasti
     end
 
     def assigned_attribute?(attr_name)
-      !attribute_key_for(attr_name.to_sym).nil?
+      !attribute_key_for(attr_name).nil? || self.class.attributes.any? { |a| a.name == attr_name && a.default? }
     end
 
     def attribute_key_for(attr_name)
