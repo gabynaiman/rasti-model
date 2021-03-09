@@ -56,8 +56,8 @@ module Rasti
     end
 
     def initialize(attributes={})
-      validate_defined_attributes! attributes.keys.map(&:to_sym)
       @__attributes__ = attributes
+      validate_defined_attributes! attributes.keys.map(&:to_sym)
     end
 
     def merge(new_attributes)
