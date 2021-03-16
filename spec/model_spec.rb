@@ -164,12 +164,14 @@ describe Rasti::Model do
 
     let :contact_class do
       Rasti::Model[
-        id:        T::Integer,
-        name:      T::String,
-        birthday:  T::Model[birthday_class],
-        phones:    T::Hash[T::Symbol, T::Integer],
-        addresses: T::Array[T::Model[address_class]],
-        labels:    T::Array[T::String]
+        id:         T::Integer,
+        name:       T::String,
+        birthday:   T::Model[birthday_class],
+        phones:     T::Hash[T::Symbol, T::Integer],
+        addresses:  T::Array[T::Model[address_class]],
+        labels:     T::Array[T::String],
+        created_at: T::Time['%d/%m/%Y %H:%M:%S %z'],
+        updated_at: nil
       ]
     end
 
@@ -190,7 +192,9 @@ describe Rasti::Model do
           {street: 'Lexington Avenue', number: 123},
           {street: 'Park Avenue',      number: 456}
         ],
-        labels: ['Friend', 'Work']
+        labels: ['Friend', 'Work'],
+        created_at: '16/03/2021 09:30:10 -0300',
+        updated_at: Time.parse('2021-03-16T11:45:20-03:00')
       }
     end
 
@@ -209,11 +213,13 @@ describe Rasti::Model do
     it 'Except' do
       contact = contact_class.new attributes
 
-      contact.to_h(except: [:age, :addresses]).must_equal id: attributes[:id],
-                                                          name: attributes[:name],
-                                                          birthday: attributes[:birthday],
-                                                          phones: attributes[:phones],
-                                                          labels: attributes[:labels]
+      excluded_attributes = [:age, :addresses, :created_at, :updated_at]
+
+      contact.to_h(except: excluded_attributes).must_equal id: attributes[:id],
+                                                           name: attributes[:name],
+                                                           birthday: attributes[:birthday],
+                                                           phones: attributes[:phones],
+                                                           labels: attributes[:labels]
     end
 
     it 'Ignore not assigned attributes' do

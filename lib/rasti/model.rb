@@ -175,22 +175,28 @@ module Rasti
       @serialized_attributes ||= begin
         cast_attributes!
 
-        __cache__.each_with_object({}) do |(attr_name, value), hash|
-          hash[attr_name] = serialize_value value
+        self.class.attributes.each_with_object({}) do |attribute, hash|
+          if __cache__.key? attribute.name
+            hash[attribute.name] = serialize_value __cache__[attribute.name], attribute.type
+          end
         end
       end
     end
 
-    def serialize_value(value)
+    def serialize_value(value, type=nil)
       case value
         when Model
           value.to_h
         when Array
-          value.map { |v| serialize_value v }
+          t = type.is_a?(Rasti::Types::Array) ? type.type : nil
+          value.map { |v| serialize_value v, t }
         when Hash
+          t = type.is_a?(Rasti::Types::Hash) ? type.value_type : nil
           value.each_with_object({}) do |(k,v), h|
-            h[k.to_sym] = serialize_value v
+            h[k.to_sym] = serialize_value v, t
           end
+        when Time
+          type.is_a?(Rasti::Types::Time) ? value.strftime(type.format) : value
         else
           value
       end
