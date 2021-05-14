@@ -170,7 +170,7 @@ describe Rasti::Model do
         phones:     T::Hash[T::Symbol, T::Integer],
         addresses:  T::Array[T::Model[address_class]],
         labels:     T::Array[T::String],
-        created_at: T::Time['%d/%m/%Y %H:%M:%S %z'],
+        created_at: T::Time['%Y-%m-%d %H:%M:%S %z'],
         updated_at: nil
       ]
     end
@@ -193,8 +193,8 @@ describe Rasti::Model do
           {street: 'Park Avenue',      number: 456}
         ],
         labels: ['Friend', 'Work'],
-        created_at: '16/03/2021 09:30:10 -0300',
-        updated_at: Time.parse('2021-03-16T11:45:20-03:00')
+        created_at: Time.parse('16/03/2021 09:30:10 -0200').to_s,
+        updated_at: Time.parse('2021-03-16T11:45:20+04:00')
       }
     end
 
