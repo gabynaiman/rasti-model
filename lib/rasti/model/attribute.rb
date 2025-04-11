@@ -18,6 +18,10 @@ module Rasti
         options.fetch(:default)
       end
 
+      def option(name)
+        options[name]
+      end
+
       def to_s
         "#{self.class}[name: #{name.inspect}, type: #{type.inspect}, options: #{options.inspect}]"
       end

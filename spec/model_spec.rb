@@ -257,6 +257,16 @@ describe Rasti::Model do
     point_2.y.must_equal 2
   end
 
+  it 'Custom attribute options' do
+    model = Class.new(Rasti::Model) do
+      attribute :text, T::String, description: 'Test description'
+    end
+
+    attribute = model.attributes.first
+    attribute.option(:description).must_equal 'Test description'
+    attribute.option(:undefined).must_be_nil
+  end
+
   it 'to_s' do
     Position.to_s.must_equal 'Position[type, point]'
 
