@@ -35,6 +35,9 @@ end
 point = Point.new x: 1, y: 2
 point.x # => 1
 point.y # => 2
+
+# Unexpected attributes
+Point.new z: 3 # => Rasti::Model::UnexpectedAttributesError: Unexpected attributes: z
 ```
 
 ### Typed models
@@ -77,6 +80,54 @@ country.name # => 'Argentina'
 country.cities # => [City[name: "Buenos Aires"], City[name: "Córdoba"], City[name: "Rosario"]]
 
 country.to_h # => attributes
+
+# Attribute filtering
+country.to_h(only: [:name]) # => {name: "Argentina"}
+country.to_h(except: [:cities]) # => {name: "Argentina"}
+```
+
+### Default values
+```ruby
+class User < Rasti::Model
+  attribute :name, T::String
+  attribute :admin, T::Boolean, default: false
+  attribute :created_at, T::Time, default: ->(m) { Time.now }
+end
+
+user = User.new name: 'John'
+user.admin # => false
+user.created_at # => 2026-01-02 23:19:15 -0300
+```
+
+### Merging models
+```ruby
+point_1 = Point.new x: 1, y: 2
+point_2 = point_1.merge x: 10
+point_2.to_h # => {x: 10, y: 2}
+```
+
+### Custom attribute options
+You can add custom metadata to attributes that can be used later (e.g., for UI generation):
+
+```ruby
+class User < Rasti::Model
+  attribute :name, T::String, description: 'The user full name'
+end
+
+attribute = User.attributes.first
+attribute.option(:description) # => 'The user full name'
+```
+
+These options are also included in the schema representation.
+
+### Equality
+```ruby
+point_1 = Point.new x: 1, y: 2
+point_2 = Point.new x: 1, y: 2
+point_3 = Point.new x: 2, y: 1
+
+point_1 == point_2 # => true
+point_1 == point_3 # => false
 ```
 
 ### Error handling
@@ -86,7 +137,40 @@ TypedPoint = Rasti::Model[x: T::Integer, y: T::Integer]
 point = TypedPoint.new x: true
 point.x # => Rasti::Types::CastError: Invalid cast: true -> Rasti::Types::Integer
 point.y # => Rasti::Model::NotAssignedAttributeError: Not assigned attribute y
+
+# Bulk validation
+point = TypedPoint.new x: 'invalid', y: 'invalid'
+point.cast_attributes! # => Rasti::Types::CompoundError: x: ["Invalid cast: \"invalid\" -> Rasti::Types::Integer"], y: ["Invalid cast: \"invalid\" -> Rasti::Types::Integer"]
 ```
+
+### Model Schema
+It is possible to obtain a serializable representation of the model structure (schema).
+
+```ruby
+Point = Rasti::Model[x: T::Integer, y: T::Integer]
+Point.to_schema
+# => {
+#      model: "Point",
+#      attributes: [
+#        {name: :x, type: :integer},
+#        {name: :y, type: :integer}
+#      ]
+#    }
+```
+
+#### Custom type serializers
+You can register custom serializers for your types to be used in the schema generation:
+
+```ruby
+Rasti::Model::Schema.register_type_serializer(MyCustomType, :custom)
+
+# Or with a block for more details
+Rasti::Model::Schema.register_type_serializer(MyCustomType) do |type|
+  {type: :custom, details: type.some_info}
+end
+```
+
+Also, if a type responds to `to_schema`, it will be used.
 
 ## Contributing
 
