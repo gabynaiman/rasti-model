@@ -32,6 +32,10 @@ module Rasti
         name || self.superclass.name
       end
 
+      def to_schema
+        Schema.serialize self
+      end
+
       def to_s
         "#{model_name}[#{attribute_names.join(', ')}]"
       end

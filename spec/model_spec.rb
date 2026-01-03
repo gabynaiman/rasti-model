@@ -290,4 +290,80 @@ describe Rasti::Model do
     error.message.must_equal 'Attribute x already exists'
   end
 
+  describe 'Schema' do
+
+    it 'Simple' do
+      model = Rasti::Model[id: T::Integer, name: T::String]
+
+      model.to_schema.must_equal({
+        model: model.to_s,
+        attributes: [
+          {name: :id, type: :integer},
+          {name: :name, type: :string}
+        ]
+      })
+    end
+
+    it 'Complex' do
+      address_class = Rasti::Model[street: T::String, number: T::Integer]
+
+      model = Rasti::Model[
+        id: T::Integer, 
+        tags: T::Array[T::String], 
+        address: T::Model[address_class], 
+        metadata: T::Hash[T::Symbol, T::String],
+        status: T::Enum['active', 'inactive'],
+        created_at: T::Time['%Y-%m-%d']
+      ]
+
+      model.to_schema.must_equal({
+        model: model.to_s,
+        attributes: [
+          {name: :id, type: :integer},
+          {name: :tags, type: :array, items: {type: :string}},
+          {name: :address, type: :model, model: address_class.to_s, schema: {
+            model: address_class.to_s,
+            attributes: [
+              {name: :street, type: :string},
+              {name: :number, type: :integer}
+            ]
+          }},
+          {name: :metadata, type: :hash, key_type: {type: :symbol}, value_type: {type: :string}},
+          {name: :status, type: :enum, values: ['active', 'inactive']},
+          {name: :created_at, type: :time, format: '%Y-%m-%d'}
+        ]
+      })
+    end
+
+    it 'With options' do
+      model = Class.new(Rasti::Model) do
+        attribute :text, T::String, description: 'Basic text'
+      end
+
+      model.to_schema.must_equal({
+        model: model.to_s,
+        attributes: [
+          {name: :text, type: :string, options: {description: 'Basic text'}}
+        ]
+      })
+    end
+
+    it 'Type with to_schema' do
+      custom_type = Object.new
+      custom_type.define_singleton_method :to_schema do
+        {type: :custom, details: 'custom details'}
+      end
+
+      model = Rasti::Model[attr: custom_type]
+
+      model.to_schema.must_equal({
+        model: model.to_s,
+        attributes: [
+          {name: :attr, type: :custom, details: 'custom details'}
+        ]
+      })
+    end
+
+  end
+
 end
