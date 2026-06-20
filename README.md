@@ -3,7 +3,6 @@
 [![Gem Version](https://badge.fury.io/rb/rasti-model.svg)](https://rubygems.org/gems/rasti-model)
 [![CI](https://github.com/gabynaiman/rasti-model/actions/workflows/ci.yml/badge.svg)](https://github.com/gabynaiman/rasti-model/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/gabynaiman/rasti-model/badge.svg?branch=master)](https://coveralls.io/github/gabynaiman/rasti-model?branch=master)
-[![Code Climate](https://codeclimate.com/github/gabynaiman/rasti-model.svg)](https://codeclimate.com/github/gabynaiman/rasti-model)
 
 Domain models with typed attributes
 
