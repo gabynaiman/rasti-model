@@ -364,6 +364,65 @@ describe Rasti::Model do
       })
     end
 
+    it 'Self-referential model' do
+      node_class = Class.new(Rasti::Model) do
+        attribute :name, T::String
+      end
+      node_class.send(:attribute, :child, T::Model[node_class])
+
+      node_name = node_class.to_s
+
+      node_class.to_schema.must_equal({
+        model: node_name,
+        attributes: [
+          {type: :string, name: :name},
+          {type: :model, model: node_name, schema: {
+            model: node_name,
+            attributes: [
+              {type: :string, name: :name},
+              {type: :model, model: node_name, schema: {model: node_name, attributes: []}, name: :child}
+            ]
+          }, name: :child}
+        ]
+      })
+    end
+
+    it 'Mutually recursive models' do
+      person_class = Class.new(Rasti::Model) do
+        attribute :name, T::String
+      end
+
+      company_class = Class.new(Rasti::Model) do
+        attribute :name, T::String
+      end
+
+      person_class.send(:attribute, :employer, T::Model[company_class])
+      company_class.send(:attribute, :ceo, T::Model[person_class])
+
+      person_name = person_class.to_s
+      company_name = company_class.to_s
+
+      person_class.to_schema.must_equal({
+        model: person_name,
+        attributes: [
+          {type: :string, name: :name},
+          {type: :model, model: company_name, schema: {
+            model: company_name,
+            attributes: [
+              {type: :string, name: :name},
+              {type: :model, model: person_name, schema: {
+                model: person_name,
+                attributes: [
+                  {type: :string, name: :name},
+                  {type: :model, model: company_name, schema: {model: company_name, attributes: []}, name: :employer}
+                ]
+              }, name: :ceo}
+            ]
+          }, name: :employer}
+        ]
+      })
+    end
+
   end
 
 end

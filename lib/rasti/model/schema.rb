@@ -7,9 +7,9 @@ module Rasti
           type_serializers[type] = block || serialized_type
         end
 
-        def serialize(model_class)
+        def serialize(model_class, visited=Set.new)
           attributes = model_class.attributes.map do |attribute|
-            serialize_attribute(attribute).merge(name: attribute.name)
+            serialize_attribute(attribute, visited).merge(name: attribute.name)
           end
 
           {
@@ -24,8 +24,8 @@ module Rasti
           @type_serializers ||= {}
         end
 
-        def serialize_attribute(attribute)
-          serialization = serialize_type(attribute.type)
+        def serialize_attribute(attribute, visited)
+          serialization = serialize_type(attribute.type, visited)
           
           options = attribute.send(:options)
           serialization[:options] = options unless options.empty?
@@ -33,7 +33,7 @@ module Rasti
           serialization
         end
 
-        def serialize_type(type)
+        def serialize_type(type, visited=Set.new)
           if type.nil?
             return {type: :any}
           end
@@ -67,11 +67,17 @@ module Rasti
           elsif type.respond_to?(:values)
             {type: :enum, values: type.values}
           elsif type.is_a?(Types::Array)
-            {type: :array, items: serialize_type(type.type)}
+            {type: :array, items: serialize_type(type.type, visited)}
           elsif type.is_a?(Types::Hash)
-            {type: :hash, key_type: serialize_type(type.key_type), value_type: serialize_type(type.value_type)}
+            {type: :hash, key_type: serialize_type(type.key_type, visited), value_type: serialize_type(type.value_type, visited)}
           elsif type.is_a?(Types::Model)
-            {type: :model, model: type.model.name || type.model.to_s, schema: serialize(type.model)}
+            model = type.model
+            model_name = model.name || model.to_s
+            if visited.include?(model)
+              {type: :model, model: model_name, schema: {model: model_name, attributes: []}}
+            else
+              {type: :model, model: model_name, schema: serialize(model, visited | Set[model])}
+            end
           else
             {type: :unknown, details: type.to_s}
           end

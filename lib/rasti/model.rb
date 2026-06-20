@@ -1,5 +1,6 @@
 require 'multi_require'
 require 'rasti-types'
+require 'set'
 
 module Rasti
   class Model
